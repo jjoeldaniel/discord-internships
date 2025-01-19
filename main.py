@@ -57,8 +57,9 @@ def get_new_roles() -> list[JobPosting]:
     new_roles: list[JobPosting] = []
 
     # Check if PREVIOUS_LISTING_PATH exists
-    # If not, then return empty
+    # If not, initialize and return empty
     if not os.path.exists(PREVIOUS_LISTING_PATH):
+        logger.info(f"File {PREVIOUS_LISTING_PATH} not found. Initializing file...")
         shutil.copy(LISTING_PATH, PREVIOUS_LISTING_PATH)
         return new_roles
 
@@ -77,6 +78,9 @@ def get_new_roles() -> list[JobPosting]:
             # If old was inactive, but new is active, it's newly active
             if not old_post.active and new_post.active:
                 new_roles.append(new_post)
+
+    # Update previous roles file
+    shutil.copy(LISTING_PATH, PREVIOUS_LISTING_PATH)
 
     return new_roles
 
