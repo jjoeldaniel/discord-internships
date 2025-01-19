@@ -1,6 +1,7 @@
 import asyncio
 from dotenv import load_dotenv
 import os
+import shutil
 from loguru import logger
 import requests
 import json
@@ -58,6 +59,7 @@ def get_new_roles() -> list[JobPosting]:
     # Check if PREVIOUS_LISTING_PATH exists
     # If not, then return empty
     if not os.path.exists(PREVIOUS_LISTING_PATH):
+        shutil.copy(LISTING_PATH, PREVIOUS_LISTING_PATH)
         return new_roles
 
     # Build a dictionary of old roles keyed by their ID
@@ -90,7 +92,7 @@ async def main():
             logger.success("New roles found")
             [print(role) for role in new_roles]
 
-        await asyncio.sleep(60)
+        await asyncio.sleep(300)
 
 
 if __name__ == "__main__":
