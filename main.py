@@ -94,7 +94,7 @@ async def main():
 
         if new_roles:
             logger.success("New roles found")
-            [print(role) for role in new_roles]
+            [print(f"{role.title} at {role.company_name} [{role.locations}]") for role in new_roles]
 
         await asyncio.sleep(300)
 
