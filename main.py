@@ -17,6 +17,12 @@ LISTING_URL = "https://raw.githubusercontent.com/SimplifyJobs/Summer2025-Interns
 LISTING_PATH = "listings.json"
 PREVIOUS_LISTING_PATH = "previous_listings.json"
 
+# By default, we ignore existing job posts that
+# are made active after a period of inactivity
+# 
+# Only fresh posts are included
+INCLUDE_REPOSTS = False
+
 
 def parse_file(path: str) -> list[JobPosting]:
     """
@@ -76,7 +82,7 @@ def get_new_roles() -> list[JobPosting]:
         # Otherwise, check if it just became active
         else:
             # If old was inactive, but new is active, it's newly active
-            if not old_post.active and new_post.active:
+            if INCLUDE_REPOSTS and (not old_post.active and new_post.active):
                 new_roles.append(new_post)
 
     # Update previous roles file
@@ -94,7 +100,7 @@ async def main():
 
         if new_roles:
             logger.success("New roles found")
-            [print(f"{role.title} at {role.company_name} [{role.locations}]") for role in new_roles]
+            [print(f"{role.title} at {role.company_name} {role.locations}") for role in new_roles]
 
         await asyncio.sleep(300)
 
