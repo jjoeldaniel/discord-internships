@@ -1,8 +1,9 @@
-import asyncio
+from time import sleep
 from dotenv import load_dotenv
 import os
 import shutil
 from loguru import logger
+from discord_webhook import DiscordWebhook, DiscordEmbed
 import requests
 import json
 from job import JobPosting
@@ -11,7 +12,7 @@ from job import JobPosting
 _ = load_dotenv()
 
 # Constants
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+WEBHOOK_URLS: list[str] = str(os.getenv("WEBHOOK_URL")).split(",")
 REPO_ROUTE = "SimplifyJobs/Summer2025-Internships"
 LISTING_URL = "https://raw.githubusercontent.com/SimplifyJobs/Summer2025-Internships/refs/heads/dev/.github/scripts/listings.json"
 LISTING_PATH = "listings.json"
@@ -19,9 +20,9 @@ PREVIOUS_LISTING_PATH = "previous_listings.json"
 
 # By default, we ignore existing job posts that
 # are made active after a period of inactivity
-# 
+#
 # Only fresh posts are included
-INCLUDE_REPOSTS = False
+INCLUDE_REPOSTS = True
 
 
 def parse_file(path: str) -> list[JobPosting]:
@@ -65,7 +66,7 @@ def get_new_roles() -> list[JobPosting]:
     # Check if PREVIOUS_LISTING_PATH exists
     # If not, initialize and return empty
     if not os.path.exists(PREVIOUS_LISTING_PATH):
-        logger.info(f"File {PREVIOUS_LISTING_PATH} not found. Initializing file...")
+        logger.info(f"File {PREVIOUS_LISTING_PATH} not found. Initializing file..")
         shutil.copy(LISTING_PATH, PREVIOUS_LISTING_PATH)
         return new_roles
 
@@ -91,7 +92,11 @@ def get_new_roles() -> list[JobPosting]:
     return new_roles
 
 
-async def main():
+def main():
+    if not WEBHOOK_URLS:
+        logger.error("No WEBHOOK_URLS given. Please add at least one before running..")
+        os._exit(1)
+
     while True:
         logger.info("Checking for new roles")
 
@@ -100,10 +105,30 @@ async def main():
 
         if new_roles:
             logger.success("New roles found")
-            [print(f"{role.title} at {role.company_name} {role.locations}") for role in new_roles]
 
-        await asyncio.sleep(300)
+            webhooks = DiscordWebhook.create_batch(urls=WEBHOOK_URLS)
+
+            for role in new_roles:
+                embed = DiscordEmbed(
+                    title=f"[{role.title} @ {role.company_name}]({role.url})",
+                    color="03b2f8",
+                )
+
+                embed.add_embed_field(
+                    name="Location(s)",
+                    value=", ".join(role.locations) if role.locations else "N/A",
+                    inline=False,
+                )
+                embed.add_embed_field(
+                    name="Sponsorship", value=role.sponsorship or "N/A", inline=False
+                )
+
+                [webhook.add_embed(embed) for webhook in webhooks]
+
+            _ = [webhook.execute() for webhook in webhooks]
+
+        sleep(300)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
