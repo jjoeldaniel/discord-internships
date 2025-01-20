@@ -14,7 +14,7 @@ PREVIOUS_LISTING_PATH = "previous_listings.json"
 # are made active after a period of inactivity
 #
 # Only fresh posts are included
-INCLUDE_REPOSTS = True
+INCLUDE_REPOSTS = False
 
 
 def parse_file(path: str) -> list[JobPosting]:
