@@ -12,7 +12,7 @@ from job import JobPosting
 _ = load_dotenv()
 
 # Constants
-WEBHOOK_URLS: list[str] = str(os.getenv("WEBHOOK_URL")).split(",")
+WEBHOOK_URLS: list[str] = str(os.getenv("WEBHOOK_URLS")).split(",")
 REPO_ROUTE = "SimplifyJobs/Summer2025-Internships"
 LISTING_URL = "https://raw.githubusercontent.com/SimplifyJobs/Summer2025-Internships/refs/heads/dev/.github/scripts/listings.json"
 LISTING_PATH = "listings.json"
