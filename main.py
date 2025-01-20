@@ -31,17 +31,17 @@ def main():
 
             for role in new_roles:
                 embed = DiscordEmbed(
-                    title=f"[{role.title} @ {role.company_name}]({role.url})",
+                    description=f"# [{role.title} @ {role.company_name}]({role.url})",
                     color="03b2f8",
                 )
 
                 embed.add_embed_field(
-                    name="Location(s)",
+                    name="**Location(s)**",
                     value=", ".join(role.locations) if role.locations else "N/A",
                     inline=False,
                 )
                 embed.add_embed_field(
-                    name="Sponsorship", value=role.sponsorship or "N/A", inline=False
+                    name="**Sponsorship**", value=role.sponsorship or "N/A", inline=False
                 )
 
                 [webhook.add_embed(embed) for webhook in webhooks]
