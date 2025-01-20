@@ -31,7 +31,7 @@ def main():
 
             for role in new_roles:
                 embed = DiscordEmbed(
-                    description=f"# [{role.title} @ {role.company_name}]({role.url})",
+                    description=f"## [{role.title} @ {role.company_name}]({role.url})",
                     color="03b2f8",
                 )
 
