@@ -10,6 +10,9 @@ LISTING_URL = "https://raw.githubusercontent.com/SimplifyJobs/Summer2025-Interns
 LISTING_PATH = "listings.json"
 PREVIOUS_LISTING_PATH = "previous_listings.json"
 
+# NEW: Local file to store the last known ETag for conditional requests
+LISTING_ETAG_PATH = "listings.etag"
+
 # By default, we ignore existing job posts that
 # are made active after a period of inactivity
 #
@@ -30,19 +33,48 @@ def parse_file(path: str) -> list[JobPosting]:
 
 def pull_data() -> list[JobPosting]:
     """
-    Retrieve updated `JobPosting` list
+    Retrieve updated `JobPosting` list using a conditional request.
+    If no changes, returns existing local copy (if present) or an empty list.
     """
 
-    try:
-        os.remove(LISTING_PATH)
-    except OSError:
-        pass
-    finally:
-        data = requests.get(LISTING_URL)
+    # Read the last known ETag if it exists
+    old_etag = None
+    if os.path.exists(LISTING_ETAG_PATH):
+        with open(LISTING_ETAG_PATH, "r") as f:
+            old_etag = f.read().strip()
+
+    # Include the ETag in the If-None-Match header
+    headers = {}
+    if old_etag:
+        headers["If-None-Match"] = old_etag
+
+    # Fetch file info from GitHub (raw URL still works with ETag)
+    r = requests.get(LISTING_URL, headers=headers)
+
+    if r.status_code == 304:
+        logger.info("No changes in listings file (304 Not Modified).")
+        return []
+
+    elif r.status_code == 200:
+        # The file was updated or no ETag was sent; we have new content
+        new_etag = r.headers.get("ETag")
+        if new_etag:
+            with open(LISTING_ETAG_PATH, "w") as f:
+                _ = f.write(new_etag)
+
+        # Overwrite the local file
+        try:
+            os.remove(LISTING_PATH)
+        except OSError:
+            pass
+
         with open(LISTING_PATH, "w") as f:
-            json.dump(data.json(), f)
+            json.dump(r.json(), f)
 
         return parse_file(LISTING_PATH)
+    else:
+        r.raise_for_status()
+        return []
 
 
 def get_new_roles() -> list[JobPosting]:
@@ -52,8 +84,10 @@ def get_new_roles() -> list[JobPosting]:
 
     # Pull new data
     new_data: list[JobPosting] = pull_data()
-
     new_roles: list[JobPosting] = []
+
+    if not new_data:
+        return []
 
     # Check if PREVIOUS_LISTING_PATH exists
     # If not, initialize and return empty

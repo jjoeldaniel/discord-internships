@@ -6,6 +6,9 @@ __pycache__/
 # JSON files (store internship data)
 *.json
 
+# E-TAG (used for comparing data)
+*.etag
+
 # C extensions
 *.so
 
