@@ -41,7 +41,9 @@ def main():
                     inline=False,
                 )
                 embed.add_embed_field(
-                    name="**Sponsorship**", value=role.sponsorship or "N/A", inline=False
+                    name="**Sponsorship**",
+                    value=role.sponsorship or "N/A",
+                    inline=False,
                 )
 
                 [webhook.add_embed(embed) for webhook in webhooks]
