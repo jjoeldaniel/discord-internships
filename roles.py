@@ -1,12 +1,19 @@
 from job import JobPosting
+import base64
 import requests
 import shutil
 from loguru import logger
 import os
 import json
+from dotenv import load_dotenv
 
+# Load environment variables
+_ = load_dotenv()
+
+# Constants
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 REPO_ROUTE = "SimplifyJobs/Summer2025-Internships"
-LISTING_URL = "https://raw.githubusercontent.com/SimplifyJobs/Summer2025-Internships/refs/heads/dev/.github/scripts/listings.json"
+LISTING_URL = f"https://api.github.com/repos/{REPO_ROUTE}/contents/.github/scripts/listings.json"
 LISTING_PATH = "listings.json"
 PREVIOUS_LISTING_PATH = "previous_listings.json"
 
@@ -30,19 +37,45 @@ def parse_file(path: str) -> list[JobPosting]:
 
 def pull_data() -> list[JobPosting]:
     """
-    Retrieve updated `JobPosting` list
+    Retrieve updated `JobPosting` list from GitHub,
+    fully authenticated and without using raw.githubusercontent.com,
+    so we get the higher API rate limits.
     """
+    GITHUB_TOKEN = os.getenv("GITHUB_TOKEN") or "YOUR_PERSONAL_ACCESS_TOKEN"
+    if not GITHUB_TOKEN:
+        raise RuntimeError("No GitHub token found in environment or code.")
 
-    try:
-        os.remove(LISTING_PATH)
-    except OSError:
-        pass
-    finally:
-        data = requests.get(LISTING_URL)
-        with open(LISTING_PATH, "w") as f:
-            json.dump(data.json(), f)
+    # 1) GET file metadata via the 'contents' endpoint
+    #    This remains on api.github.com, so we see X-RateLimit-* headers and stay authenticated.
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json",
+    }
 
-        return parse_file(LISTING_PATH)
+    # Optional: If we want to handle ETags (conditional requests),
+    # we could add:
+    #   headers["If-None-Match"] = 'W/"some-previous-etag"'
+    # or handle them after this request.
+
+    resp = requests.get(LISTING_URL, headers=headers)
+    resp.raise_for_status()
+
+    info = resp.json()
+    file_sha = info["sha"]
+
+    blob_url = f"https://api.github.com/repos/{REPO_ROUTE}/git/blobs/{file_sha}"
+    blob_resp = requests.get(blob_url, headers=headers)
+    blob_resp.raise_for_status()
+    blob_info = blob_resp.json()
+
+    decoded_bytes = base64.b64decode(blob_info["content"])
+
+    # Write the JSON to a local file
+    with open(LISTING_PATH, "wb") as f:
+        _ = f.write(decoded_bytes)
+
+    # Now parse the local JSON
+    return parse_file(LISTING_PATH)
 
 
 def get_new_roles() -> list[JobPosting]:

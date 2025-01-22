@@ -25,7 +25,7 @@ def main():
         new_roles: list[JobPosting] = get_new_roles()
 
         if new_roles:
-            logger.success("New roles found")
+            logger.success(f"{len(new_roles)} new role(s) found")
 
             webhooks = DiscordWebhook.create_batch(urls=WEBHOOK_URLS)
 
