@@ -54,7 +54,7 @@ def main():
 
                 [webhook.add_embed(embed) for webhook in webhooks]
 
-                _ = [webhook.execute() for webhook in webhooks]
+            _ = [webhook.execute() for webhook in webhooks]
 
         sleep(300)
 
