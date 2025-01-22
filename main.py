@@ -27,9 +27,15 @@ def main():
         if new_roles:
             logger.success(f"{len(new_roles)} new role(s) found")
 
+        while new_roles:
             webhooks = DiscordWebhook.create_batch(urls=WEBHOOK_URLS)
 
-            for role in new_roles:
+            for _ in range(0, 9):
+                if not new_roles:
+                    break
+
+                role = new_roles.pop()
+
                 embed = DiscordEmbed(
                     description=f"## [{role.title} @ {role.company_name}]({role.url})",
                     color="03b2f8",
@@ -48,7 +54,7 @@ def main():
 
                 [webhook.add_embed(embed) for webhook in webhooks]
 
-            _ = [webhook.execute() for webhook in webhooks]
+                _ = [webhook.execute() for webhook in webhooks]
 
         sleep(300)
 
