@@ -29,26 +29,36 @@ def main():
 
             webhooks = DiscordWebhook.create_batch(urls=WEBHOOK_URLS)
 
-            for role in new_roles:
-                embed = DiscordEmbed(
-                    description=f"## [{role.title} @ {role.company_name}]({role.url})",
-                    color="03b2f8",
-                )
+            while new_roles:
+                # Only 10 embeds max per webhook message
+                for _ in range(0, 10):
+                    if not new_roles:
+                        break
 
-                embed.add_embed_field(
-                    name="**Location(s)**",
-                    value=", ".join(role.locations) if role.locations else "N/A",
-                    inline=False,
-                )
-                embed.add_embed_field(
-                    name="**Sponsorship**",
-                    value=role.sponsorship or "N/A",
-                    inline=False,
-                )
+                    role = new_roles.pop()
 
-                [webhook.add_embed(embed) for webhook in webhooks]
+                    for role in new_roles:
+                        embed = DiscordEmbed(
+                            description=f"## [{role.title} @ {role.company_name}]({role.url})",
+                            color="03b2f8",
+                        )
 
-            _ = [webhook.execute() for webhook in webhooks]
+                        embed.add_embed_field(
+                            name="**Location(s)**",
+                            value=", ".join(role.locations)
+                            if role.locations
+                            else "N/A",
+                            inline=False,
+                        )
+                        embed.add_embed_field(
+                            name="**Sponsorship**",
+                            value=role.sponsorship or "N/A",
+                            inline=False,
+                        )
+
+                        [webhook.add_embed(embed) for webhook in webhooks]
+
+                    _ = [webhook.execute() for webhook in webhooks]
 
         sleep(300)
 
