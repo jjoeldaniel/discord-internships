@@ -54,7 +54,11 @@ def main():
 
                 [webhook.add_embed(embed) for webhook in webhooks]
 
-            _ = [webhook.execute() for webhook in webhooks]
+            for webhook in webhooks:
+                try:
+                    _ = webhook.execute()
+                except Exception as e:
+                    print(e)
 
         sleep(300)
 
