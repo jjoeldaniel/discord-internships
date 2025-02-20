@@ -12,7 +12,7 @@ _ = load_dotenv()
 
 # Constants
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-REPO_ROUTE = "SimplifyJobs/Summer2025-Internships"
+REPO_ROUTE = "cvrve/Summer2025-Internships"
 LISTING_URL = f"https://api.github.com/repos/{REPO_ROUTE}/contents/.github/scripts/listings.json"
 LISTING_PATH = "listings.json"
 PREVIOUS_LISTING_PATH = "previous_listings.json"
