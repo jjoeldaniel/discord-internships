@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 from loguru import logger
 from discord_webhook import DiscordWebhook, DiscordEmbed
-from job import JobPosting
+from job import JobPostingSimplify
 from roles import get_new_roles
 
 # Load environment variables
@@ -22,7 +22,7 @@ def main():
         logger.info("Checking for new roles")
 
         # Wait some time before checking again
-        new_roles: list[JobPosting] = get_new_roles()
+        new_roles: list[JobPostingSimplify] = get_new_roles()
 
         if new_roles:
             logger.success(f"{len(new_roles)} new role(s) found")

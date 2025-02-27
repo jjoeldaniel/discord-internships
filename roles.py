@@ -1,4 +1,4 @@
-from job import JobPosting
+from job import JobPostingSimplify
 import base64
 import requests
 import shutil
@@ -24,20 +24,20 @@ PREVIOUS_LISTING_PATH = "previous_listings.json"
 INCLUDE_REPOSTS = False
 
 
-def parse_file(path: str) -> list[JobPosting]:
+def parse_file(path: str) -> list[JobPostingSimplify]:
     """
-    Parse JSON file to `list[JobPosting]`
+    Parse JSON file to `list[JobPostingSimplify]`
     """
 
     with open(path, "r") as f:
-        data = list([JobPosting(**x) for x in json.load(f)])
+        data = list([JobPostingSimplify(**x) for x in json.load(f)])
 
     return data
 
 
-def pull_data() -> list[JobPosting]:
+def pull_data() -> list[JobPostingSimplify]:
     """
-    Retrieve updated `JobPosting` list from GitHub,
+    Retrieve updated `JobPostingSimplify` list from GitHub,
     fully authenticated and without using raw.githubusercontent.com,
     so we get the higher API rate limits.
     """
@@ -78,15 +78,15 @@ def pull_data() -> list[JobPosting]:
     return parse_file(LISTING_PATH)
 
 
-def get_new_roles() -> list[JobPosting]:
+def get_new_roles() -> list[JobPostingSimplify]:
     """
     Retrieve new or newly active roles
     """
 
     # Pull new data
-    new_data: list[JobPosting] = pull_data()
+    new_data: list[JobPostingSimplify] = pull_data()
 
-    new_roles: list[JobPosting] = []
+    new_roles: list[JobPostingSimplify] = []
 
     # Check if PREVIOUS_LISTING_PATH exists
     # If not, initialize and return empty
